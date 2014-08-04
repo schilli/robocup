@@ -417,12 +417,14 @@ class NaoRobot(object):
     def __init__(self, agentID, teamname, host='localhost', port=3100, debugLevel=0,
             startCoordinates=[-0.5, 0, 0]): 
 
-        self.agentID    = agentID
-        self.teamname   = teamname
-        self.host       = host
-        self.port       = port
-        self.debugLevel = debugLevel
-        self.alive      = False
+        self.agentID       = agentID
+        self.teamname      = teamname
+        self.host          = host
+        self.port          = port
+        self.debugLevel    = debugLevel
+        self.alive         = False
+        self.realstarttime = None # starttime of robot
+        self.simstarttime  = None 
 
         # set maximum hinge effector speed
         self.maxhjSpeed = 7.035
@@ -620,13 +622,33 @@ class NaoRobot(object):
 
         self.alive = True
 
-        iteration = -1
+        startSkippingNumber = 10
+
+        iteration         = -1
+        skippedIterations =  0
         while self.alive:
             iteration += 1
 
-            self.perceive()
+            if self.check_sync() >= startSkippingNumber:
+                while self.check_sync() > 2:
+#                    print(self.check_sync())
+                    self.perceive(skip=True)
+                    iteration         += 1
+                    skippedIterations += 1 
 
+            self.perceive()
             self.msched.run()
+
+
+            if iteration * CYCLE_LENGTH % 3.0 == 0:
+#                print("Robot {} lags {} cycles behind after {} iterations".format(self.agentID, self.check_sync(), iteration+1))
+                print("gametime - realtime: {:.5f}".format(self.gamestate.get_gametime() - time.time()))
+
+
+        # report statistics
+        iterations = iteration + 1
+        print("Robot {} lived for {:.1f} seconds,\n\ti.e. {} iterations, {} of which have been skipped ({:.2f}%).".format(self.agentID, time.time()-self.realstarttime, iterations, skippedIterations, 100.0*skippedIterations/iterations))
+
 
 # ==================================== #
 
@@ -646,17 +668,24 @@ class NaoRobot(object):
 
 # ==================================== #
 
-    def perceive(self):
+    def perceive(self, skip=False):
         """Receive perceptor information from server and
         update status accordingly"""
 
+#        start = time.time()
         perceptors = self.pns.receive_perceptors()
+#        print("receive_perceptors() took {:.8f} sec.".format(time.time()-start))
 
         for perceptor in perceptors:
 
             # time
             if perceptor[0] == 'time':
                 self.gamestate.set_time(perceptor[1][1])
+                if self.realstarttime == None:
+                    self.realstarttime = time.time()
+                    self.simstarttime  = self.gamestate.get_time()
+                if skip:
+                    break
 
             # game state
             elif perceptor[0] == 'GS':
@@ -696,6 +725,18 @@ class NaoRobot(object):
                     print("DEBUG: unknown perceptor: {}".format(perceptor[0]))
                     print(perceptor)
          
+# ==================================== #
+
+    def check_sync(self):
+        """Check if perceived time is in sync with real time
+        Return True if so, else False"""
+
+        realruntime = time.time() - self.realstarttime
+        simruntime  = self.gamestate.get_time() - self.simstarttime
+
+        cycleDiff = int((realruntime - simruntime) / CYCLE_LENGTH)
+        return cycleDiff
+
 # ==================================== #
 
     def rock_hj(self, hj, speed, minAngle, maxAngle):
@@ -815,19 +856,25 @@ class NaoRobot(object):
         print("ACC:", np.linalg.norm(self.acc.get()))
 
         done[0] = False
-        self.msched.append([self.move_hj_to, {'hj': 'rlj3', 'percent': 50}, done])
-        self.msched.append([self.move_hj_to, {'hj': 'rlj4', 'percent': 50}, done])
-        while not done[0]:
+#        self.msched.append([self.move_hj_to, {'hj': 'rlj3', 'percent': 50}, done])
+#        self.msched.append([self.move_hj_to, {'hj': 'rlj4', 'percent': 50}, done])
+        self.msched.append([self.move_hj_to, {'hj': 'rlj5', 'percent': 100}, done])
+        self.msched.append([self.move_hj_to, {'hj': 'llj5', 'percent': 100}, done])
+
+        self.test_orientation(0.1)
+
+
+#        while not done[0]:
 #            print("ACC:", np.linalg.norm(self.acc.get()))
 #            print("GYR:", self.gyr.get())
-            print(self.gyr.x)
-            print(self.gyr.y)
-            print(self.gyr.z)
-            print("")
-            time.sleep(0.05)
-
-        time = time.time()
-        time.sleep(1.0)
+#            print(self.gyr.x)
+#            print(self.gyr.y)
+#            print(self.gyr.z)
+#            print("")
+#            time.sleep(0.05)
+#
+#        time = time.time()
+#        time.sleep(1.0)
             
 #        done[0] = False
 #        self.msched.append([self.move_hj_to, {'hj': 'hj1', 'percent': 0}, done])
@@ -837,6 +884,19 @@ class NaoRobot(object):
 #        self.msched.append([self.move_hj_to, {'hj': 'hj1', 'percent': 50}, done])
 #        while not done[0]:
 #            pass  
+
+# ==================================== #
+
+    def test_orientation(self, length=1.0):
+        start = time.time()
+        while time.time() - start < length:
+            print("time: {:.3f}".format(time.time()-start))
+            print(self.gyr.rate)
+            print(self.gyr.x)
+            print(self.gyr.y)
+            print(self.gyr.z) 
+            print("")
+            time.sleep(CYCLE_LENGTH)
 
 
 # ============================================================================ #

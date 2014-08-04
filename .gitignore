@@ -1,6 +1,9 @@
 # Dolphin settings
 .directory
 
+# vim backup
+*.swp
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
