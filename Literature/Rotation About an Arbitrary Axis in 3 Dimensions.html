@@ -1,0 +1,300 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head><title>Rotation About an Arbitrary Axis in 3 Dimensions</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<!-- html --> 
+<meta name="src" content="ArbitraryAxisRotation.tex"> 
+<meta name="date" content="2013-06-06 21:34:00"> 
+<link rel="stylesheet" type="text/css" href="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation.css"> 
+</head><body>
+   <div class="maketitle">
+                                                                                         
+                                                                                         
+                                                                                         
+                                                                                         
+
+<h2 class="titleHead">Rotation About an Arbitrary Axis in 3 Dimensions</h2>
+<div class="author"><span class="cmr-12x-x-120">Glenn Murray</span></div><br>
+<div class="date"><span class="cmr-12x-x-120">June 6, 2013</span></div>
+   </div>
+   <h3 class="sectionHead"><span class="titlemark">1   </span> <a id="x1-10001"></a>Introduction</h3>
+<!--l. 108--><p class="noindent">The problem of rotation about an arbitrary axis in three dimensions arises in many fields
+including computer graphics and molecular simulation. In this article we give an algorithm
+and matrices for doing the movement. Many of the results were initially obtained with
+Mathematica.
+<!--l. 114--></p><p class="indent">   An algorithm (See Figure&nbsp;<a href="#x1-10011">1<!--tex4ht:ref: fig-RotationSequence --></a>):
+<!--l. 116--></p><p class="indent">   </p><hr class="figure"><div class="figure">
+                                                                                         
+                                                                                         
+<a id="x1-10011"></a>
+                                                                                         
+                                                                                         
+<div class="center">
+<!--l. 117--><p class="noindent">
+<!--l. 118--></p><p class="noindent"><img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/fig-RotationSequence.png" alt="PIC" class="graphics"><!--tex4ht:graphics  
+name="ArbitraryAxisRotation0x.png" src="fig-RotationSequence.eps"  
+-->
+<br> </p><div class="caption"><span class="id">Figure&nbsp;1: </span><span class="content">Moving the axis of rotation <span class="cmmi-12">A </span>to the <span class="cmmi-12">z</span>-axis.</span></div><!--tex4ht:label?: x1-10011 -->
+</div>
+                                                                                         
+                                                                                         
+<!--l. 122--><p class="indent">   </p></div><hr class="endfigure">
+<!--l. 124--><p class="indent">   (1) Translate space so that the rotation axis passes through the origin.
+<!--l. 126--></p><p class="indent">   (2) Rotate space about the <span class="cmmi-12">z </span>axis so that the rotation axis lies in the <span class="cmmi-12">xz </span>plane.
+<!--l. 129--></p><p class="indent">   (3) Rotate space about the <span class="cmmi-12">y </span>axis so that the rotation axis lies along the <span class="cmmi-12">z </span>axis.
+<!--l. 131--></p><p class="indent">   (4) Perform the desired rotation by <span class="cmmi-12">θ </span>about the <span class="cmmi-12">z </span>axis.
+<!--l. 133--></p><p class="indent">   (5) Apply the inverse of step (3).
+<!--l. 135--></p><p class="indent">   (6) Apply the inverse of step (2).
+<!--l. 137--></p><p class="indent">   (7) Apply the inverse of step (1).
+<!--l. 139--></p><p class="indent">   We will write our three-dimensional points in four homogeneous coordinates; i.e., (<span class="cmmi-12">x,y,z</span>) will
+be written as (<span class="cmmi-12">x,y,z, </span>1). This enables us to do coordinate transformations using 4x4 matrices. Note
+that these are really only necessary for translations, if we omitted translations from our movements
+we could do the motions with 3x3 rotation matrices obtained by deleting the last rows and last
+columns of the 4x4 matrices. In this article vectors are multiplied by matrices on the vector’s
+left.
+   </p><h3 class="sectionHead"><span class="titlemark">2   </span> <a id="x1-20002"></a>A translation matrix</h3>
+<!--l. 150--><p class="noindent">The product <span class="cmmi-12">T</span><sub><span class="cmmi-8">P</span><sub><span class="cmr-6">1</span></sub></sub> <span class="cmsy-10x-x-120">⋅ </span><span class="cmmi-12">v </span>is equivalent to the vector sum <span class="cmsy-10x-x-120">⟨-</span><span class="cmmi-12">a,</span><span class="cmsy-10x-x-120">-</span><span class="cmmi-12">b,</span><span class="cmsy-10x-x-120">-</span><span class="cmmi-12">c, </span>0<span class="cmsy-10x-x-120">⟩ </span>+ <span class="cmmi-12">v</span>, i.e., this transformation
+moves the point <span class="cmmi-12">P</span><sub><span class="cmr-8">1</span></sub>(<span class="cmmi-12">a,b,c</span>) to the origin.
+<!--l. 154--></p><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation1x.png" alt="      ⌊             ⌋
+        1  0  0  - a
+T   = || 0  1  0  - b||
+ P1   ⌈ 0  0  1  - c⌉
+        0  0  0   1
+" class="math-display"></center>
+<!--l. 175--><p class="noindent">
+   </p><h3 class="sectionHead"><span class="titlemark">3   </span> <a id="x1-30003"></a>3D Coordinate axes rotation matrices</h3>
+<!--l. 177--><p class="noindent">Here are the matrices for rotation by <span class="cmmi-12">α </span>around the <span class="cmmi-12">x</span>-axis, <span class="cmmi-12">β </span>around the <span class="cmmi-12">y</span>-axis, and <span class="cmmi-12">γ </span>around the
+<span class="cmmi-12">z</span>-axis.
+<!--l. 180--></p><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation3x.png" alt="         ⌊                      ⌋
+           1    0       0     0
+         || 0  cos α  - sinα   0 ||
+Rx (α) = ⌈ 0  sin α   cosα    0 ⌉
+           0    0       0     1
+" class="math-display"></center>
+<!--l. 190--><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation4x.png" alt="         ⌊                      ⌋
+            cos β   0  sinβ   0
+         |    0     1    0    0 |
+Ry (β) = |⌈                      |⌉
+           - sin β  0  cosβ   0
+              0     0    0    1
+" class="math-display"></center>
+<!--l. 200--><p class="indent">
+                                                                                         
+                                                                                         
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation5x.png" alt="         ⌊                     ⌋
+           cos γ  - sinγ  0  0
+         | sin γ   cosγ   0  0 |
+Rz (γ) = |⌈   0       0    1  0 |⌉
+
+             0       0    0  1
+" class="math-display"></center>
+<!--l. 210--><p class="indent">   The general rotation matrix depends on the order of rotations. The first matrix rotates about
+<span class="cmmi-12">x</span>, then <span class="cmmi-12">y</span>, then <span class="cmmi-12">z</span>; the second rotates about <span class="cmmi-12">z</span>, then <span class="cmmi-12">y</span>, then <span class="cmmi-12">x</span>.
+<!--l. 215--></p><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation6x.png" alt="           ⌊                                                                           ⌋
+              cosβ cosγ   cosγ sin α sin β - cosα sinγ   cos α cosγ sin β + sin α sin γ   0
+           |  cosβ sinγ   cosα cosγ + sinα sinβ sinγ  -  cos γ sin α + cosα sinβ sin γ  0 |
+RzRyRx   = |⌈   -  sin β            cos β sinα                    cosα cosβ            0 |⌉
+
+                  0                   0                             0                1
+" class="math-display"></center>
+<!--l. 227--><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation7x.png" alt="           ⌊                                                                           ⌋
+                      cos β cosγ                  - cos β sin γ             sinβ      0
+           |  cosα sinγ + sinα sinβ cosγ   cosα cosγ - sinα sinβ sinγ  -  sin α cosβ  0 |
+RxRyRz   = |⌈                                                                           |⌉
+              sin α sin γ - cosα sinβ cosγ   sin α cosγ + cosα sinβ sinγ   cos α cosβ   0
+                           0                            0                    0       1
+" class="math-display"></center>
+                                                                                         
+                                                                                         
+<!--l. 244--><p class="noindent">
+   </p><h3 class="sectionHead"><span class="titlemark">4   </span> <a id="x1-40004"></a>Transformations for rotating a vector to the <span class="cmti-12">z</span>-axis</h3>
+<!--l. 246--><p class="noindent">In this section we introduce matrices to move a rotation vector <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>to the <span class="cmmi-12">z</span>-axis. Note that we
+use the components to form expressions for the cosines and sines to avoid using inverse
+trigonometric functions. We require that the rotation vector not be parallel to the <span class="cmmi-12">z</span>-axis, else
+<span class="cmmi-12">u </span>= <span class="cmmi-12">v </span>= 0 and the denominators vanish.
+<!--l. 253--></p><p class="noindent">
+   </p><h4 class="subsectionHead"><span class="titlemark">4.1   </span> <a id="x1-50004.1"></a>The matrix to rotate a vector about the <span class="cmti-12">z</span>-axis to the <span class="cmti-12">xz</span>-plane</h4>
+<!--l. 255--><p class="noindent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation8x.png" alt="      ⌊     √ -2----2-    √ -2----2-      ⌋
+         u/  √u-+--v--- v/√ u-+--v-- 0  0
+      ||  - v/  u2 + v2 u/   u2 + v2  0  0 ||
+Txz = ⌈       0              0       1  0 ⌉
+              0              0       0  1
+" class="math-display"></center>
+<!--l. 266--><p class="noindent">
+   </p><h4 class="subsectionHead"><span class="titlemark">4.2   </span> <a id="x1-60004.2"></a>The matrix to rotate the vector in the <span class="cmti-12">xz</span>-plane to the <span class="cmti-12">z</span>-axis</h4>
+<!--l. 268--><p class="noindent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation9x.png" alt="      ⌊        √-------------          √ --------√ -------------   ⌋
+            w/  u2 + v2 + w2      0  -   u2 + v2/  u2 + v2 + w2  0
+      |             0             1               0              0 |
+Tz =  |⌈ √u2--+-v2/√u2--+-v2-+-w2- 0       w/ √u2-+-v2-+-w2-      0 |⌉
+
+                    0             0               0              1
+" class="math-display"></center>
+<!--l. 279--><p class="noindent">
+   </p><h3 class="sectionHead"><span class="titlemark">5   </span> <a id="x1-70005"></a>Rotations about the origin</h3>
+<!--l. 281--><p class="noindent">In this section we rotate the point (<span class="cmmi-12">x,y,z</span>) about the vector <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>by the angle <span class="cmmi-12">θ</span>.
+<!--l. 284--></p><p class="noindent">
+   </p><h4 class="subsectionHead"><span class="titlemark">5.1   </span> <a id="x1-80005.1"></a>The matrix for rotations about the origin</h4>
+<!--l. 286--><p class="noindent">This is the product <span class="cmmi-12">T</span><sub><span class="cmmi-8">xz</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">T</span><sub>
+<span class="cmmi-8">z</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">R</span><sub>
+<span class="cmmi-8">z</span></sub>(<span class="cmmi-12">θ</span>)<span class="cmmi-12">T</span><sub><span class="cmmi-8">z</span></sub><span class="cmmi-12">T</span><sub><span class="cmmi-8">xz</span></sub>.
+<!--l. 290--></p><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation10x.png" alt="⌊        2   2  2                           √-2---2--2-                  √ -2--2---2-       ⌋
+        u+-(2v-+w2-)co2sθ-        uv(1- cosθ)-2 w-2u-+v2-+w-sinθ uw-(1- cosθ)+2v-2u-+v2-+w-sin-θ  0
+|         u +v  +w                      u +v +w                       u +v +w               |
+||uv(1- cosθ)+w √u2+v2+w2--sin θ        v2+(u2+w2 )cosθ        vw (1- cosθ)- u√u2+v2+w2-sin θ   ||
+|---------u2+v2+w2-----------        ---u2+v2+w2----        ----------u2+v2+w2----------  0 |
+|             √ ----------                  √----------                                     |
+||uw-(1--cosθ)--v--u2+v2+w2--sin-θ  vw(1- cosθ)+u-u2+v2+w2-sinθ-        w2+-(u2+v2-)cosθ-        0 ||
+⌈         u2+v2+w2                      u2+v2+w2                      u2+v2+w2              ⌉
+
+              0                             0                            0                1
+" class="math-display"></center>
+<!--l. 312--><p class="indent">   If we multiply this times <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">x,y,z</span><span class="cmsy-10x-x-120">⟩ </span>we can obtain a function of of seven variables
+that yields the result of rotating the point (<span class="cmmi-12">x,y,z</span>) about the axis <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>by the angle
+<span class="cmmi-12">θ</span>.
+<!--l. 332--></p><p class="noindent"><span class="cmmi-12">f</span>(<span class="cmmi-12">x,y,z,u,v,w,θ</span>) =
+                                                                                         
+                                                                                         
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation11x.png" alt="⌊                                                √ -----------                ⌋
+   u (ux+vy+wz    )(1- cos θ)+(u2+v2+w2   )xcos θ+   u2+v2+w2  (- wy+vz  )sinθ
+   ---------------------------------2---2---2--------------------------------
+|                                 u  +v  +w      √ -----------                |
+|   v(ux+vy+wz   )(1- cosθ)+ (u2+v2+w2   )ycosθ+   u2+v2+w2   (wx - uz)sinθ   |
+||   --------------------------------2---2---2-------------------------------  ||
+⌈                                 u  +v  +w        -----------                ⌉
+   w (ux+vy+wz   )(1- cosθ)+ (u2+v2+w2  )z cosθ+ √ u2+v2+w2   (- vx+uy  )sinθ
+   ---------------------------------2---2---2--------------------------------
+                                  u  +v  +w
+" class="math-display"></center>
+<!--l. 356--><p class="noindent">
+   </p><h4 class="subsectionHead"><span class="titlemark">5.2   </span> <a id="x1-90005.2"></a>The normalized matrix for rotations about the origin</h4>
+<!--l. 358--><p class="noindent">At this point we would like to simplify the expressions by making the assumption that <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>is a
+unit vector; i.e., that <span class="cmmi-12">u</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">v</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">w</span><sup><span class="cmr-8">2</span></sup> = 1. With this simplification, we obtain the following expression
+for <span class="cmmi-12">T</span><sub><span class="cmmi-8">xz</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">T</span><sub>
+<span class="cmmi-8">z</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">R</span><sub>
+<span class="cmmi-8">z</span></sub>(<span class="cmmi-12">θ</span>)<span class="cmmi-12">T</span><sub><span class="cmmi-8">z</span></sub><span class="cmmi-12">T</span><sub><span class="cmmi-8">xz</span></sub>.
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation12x.png" alt="⌊    2         2                                                          ⌋
+    u  + (1 - u )cosθ    uv (1 - cosθ) - w sin θ  uw (1 - cosθ) + vsin θ  0
+||                            2        2                                   ||
+|| uv(1 - cos θ) + w sinθ    v + (1 - v ) cosθ    vw (1 - cosθ) - usin θ  0||
+|                                                   2         2           |
+|⌈ uw (1 - cosθ) - vsinθ  vw (1 - cosθ ) + u sin θ   w  + (1 - w ) cosθ    0|⌉
+
+            0                       0                      0             1
+" class="math-display"></center>
+<!--l. 381--><p class="indent">   If we multiply this times <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">x,y,z</span><span class="cmsy-10x-x-120">⟩ </span>we can obtain a function of of seven variables that yields the
+result of rotating the point (<span class="cmmi-12">x,y,z</span>) about the axis <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>(where <span class="cmmi-12">u</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">v</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">w</span><sup><span class="cmr-8">2</span></sup> = 1) by the angle
+<span class="cmmi-12">θ</span>.
+<!--l. 387--></p><p class="noindent"><span class="cmmi-12">f</span>(<span class="cmmi-12">x,y,z,u,v,w,θ</span>) =
+                                                                                         
+                                                                                         
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation13x.png" alt="⌊                                                       ⌋
+  u(ux + vy + wz )(1 - cosθ) + x cosθ + (- wy + vz) sin θ
+|                                                       |
+||  v(ux + vy + wz )(1 - cosθ) + ycos θ + (wx - uz) sin θ ||
+⌈                                                       ⌉
+  w(ux +  vy + wz )(1 - cos θ) + z cosθ + (- vx + uy) sin θ
+" class="math-display"></center>
+<!--l. 407--><p class="noindent">
+   </p><h3 class="sectionHead"><span class="titlemark">6   </span> <a id="x1-100006"></a>Rotation about an arbitrary line</h3>
+<!--l. 409--><p class="noindent">We will define an arbitrary line by a point the line goes through and a direction vector. If the axis
+of rotation is given by two points <span class="cmmi-12">P</span><sub><span class="cmr-8">1</span></sub> = (<span class="cmmi-12">a,b,c</span>) and <span class="cmmi-12">P</span><sub><span class="cmr-8">2</span></sub> = (<span class="cmmi-12">d,e,f</span>), then a direction vector can be
+obtained by <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>= <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">d</span><span class="cmsy-10x-x-120">-</span><span class="cmmi-12">a,e</span><span class="cmsy-10x-x-120">-</span><span class="cmmi-12">b,f </span><span class="cmsy-10x-x-120">-</span><span class="cmmi-12">c</span><span class="cmsy-10x-x-120">⟩</span>. We can now write a transformation for the rotation of
+a point about this line.
+<!--l. 416--></p><p class="noindent">
+   </p><h4 class="subsectionHead"><span class="titlemark">6.1   </span> <a id="x1-110006.1"></a>The matrix for rotation about an arbitrary line</h4>
+<!--l. 418--><p class="noindent">This is given by the product <span class="cmmi-12">T</span><sub><span class="cmmi-8">P</span><sub><span class="cmr-6">1</span></sub></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">T</span><sub>
+<span class="cmmi-8">xz</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">T</span><sub>
+<span class="cmmi-8">z</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">R</span><sub>
+<span class="cmmi-8">z</span></sub>(<span class="cmmi-12">θ</span>)<span class="cmmi-12">T</span><sub><span class="cmmi-8">z</span></sub><span class="cmmi-12">T</span><sub><span class="cmmi-8">xz</span></sub><span class="cmmi-12">T</span><sub><span class="cmmi-8">P</span><sub><span class="cmr-6">1</span></sub></sub>. In hopes of fitting the matrix onto
+the page we make the substitution <span class="cmmi-12">L </span>= <span class="cmmi-12">u</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">v</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">w</span><sup><span class="cmr-8">2</span></sup>.
+<!--l. 422--></p><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation14x.png" alt="⌊                            √--                √--                                    √--   ⌋
+ u2+(v2+w2)cosθ    uv(1-cosθ)-w-L-sinθ  uw(1-cosθ)+v-L-sinθ  (a(v2+w2-)--u(bv+cw))(1-cosθ)+(bw--cv)-L-sinθ
+|      L                  L                  L                            L                  |
+||uv(1-cosθ)+w√L-sinθ    v2+(u2+w2)cosθ    vw(1-cosθ)-u√L-sinθ  (b(u2+w2)-v(au+cw))(1-cosθ)+(cu- aw )√L-sinθ||
+||------L--------    ------L------    --------L--------  ------------------L------------------||
+|         √ --               √--                                                       √--   |
+||uw-(1-cosθ)-v--Lsinθ  vw(1-cosθ)+u-L-sinθ    w2+-(u2+v2)cosθ     (c(u2+v2)-w-(au+bv))(1-cosθ)+(av--bu)-L-sinθ||
+⌈      L                  L                  L                            L                  ⌉
+       0                  0                  0                            1
+" class="math-display"></center>
+<!--l. 444--><p class="indent">   If we multiply this times <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">x,y,z</span><span class="cmsy-10x-x-120">⟩ </span>we can obtain a function of of ten variables that yields the
+result of rotating the point (<span class="cmmi-12">x,y,z</span>) about the line through (<span class="cmmi-12">a,b,c</span>) with direction vector <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>by
+the angle <span class="cmmi-12">θ</span>.
+<!--l. 449--></p><p class="noindent"><span class="cmmi-12">f</span>(<span class="cmmi-12">x,y,z,a,b,c,u,v,w,θ</span>) =
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation15x.png" alt="⌊                                                          √ --                       ⌋
+   (a(v2+w2-)--u(bv+cw--- ux---vy--wz-))(1- cos-θ)+Lx-cosθ+--L(--cv+bw--- wy+vz-)sin-θ-
+                                           L
+|                                                           √--                       |
+||  (b(u2+w2  )- v(au+cw - ux - vy - wz))(1- cos θ)+Ly cos θ+ L (cu- aw+wx  - uz )sin θ ||
+|  ---------------------------------------------------------------------------------- |
+⌈                                          L                                          ⌉
+       2   2                                               √ --
+   (c(u-+v--)--w-(au+bv----ux--vy--wz-))(1--cosθ)+Lz--cosθ+---L(--bu+av---vx+uy--)sin-θ-
+                                           L
+" class="math-display"></center>
+<!--l. 472--><p class="noindent">
+   </p><h4 class="subsectionHead"><span class="titlemark">6.2   </span> <a id="x1-120006.2"></a>The normalized matrix for rotation about an arbitrary line</h4>
+<!--l. 474--><p class="noindent">Assuming that <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩ </span>is a unit vector so that <span class="cmmi-12">L </span>= 1, we obtain a more practical result for
+<span class="cmmi-12">T</span><sub><span class="cmmi-8">P</span><sub><span class="cmr-6">1</span></sub></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">T</span><sub>
+<span class="cmmi-8">xz</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">T</span><sub>
+<span class="cmmi-8">z</span></sub><sup><span class="cmsy-8">-</span><span class="cmr-8">1</span></sup><span class="cmmi-12">R</span><sub>
+<span class="cmmi-8">z</span></sub>(<span class="cmmi-12">θ</span>)<span class="cmmi-12">T</span><sub><span class="cmmi-8">z</span></sub><span class="cmmi-12">T</span><sub><span class="cmmi-8">xz</span></sub><span class="cmmi-12">T</span><sub><span class="cmmi-8">P</span><sub><span class="cmr-6">1</span></sub></sub>.
+<!--l. 479--></p><p class="indent">
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation16x.png" alt="⌊22   2                                                    2    2                                   ⌋
+u+(v+ w )cosθ   uv(1- cosθ)- w sinθ  uw (1 - cos θ)+ vsin θ  (a(v + w  )- u(bv + cw ))(1- cosθ)+ (bw - cv)sinθ
+||              2    2    2                               2   2                                    ||
+||uv(1-cosθ)+ wsinθ   v + (u + w )cosθ   vw (1 - cosθ) - u sin θ (b(u + w )- v(au +cw ))(1- cosθ)+ (cu- aw) sinθ||
+||uw(1-cosθ)- vsinθ  vw(1- cosθ)+ u sinθ   w2 + (u2 + v2)cos θ  (c(u2 + v2)- w (au + bv))(1- cosθ)+ (av- bu)sin θ||
+|⌈                                                                                                 |⌉
+ 0                    0                   0                                1
+" class="math-display"></center>
+<!--l. 503--><p class="indent">   If we multiply this times <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">x,y,z</span><span class="cmsy-10x-x-120">⟩ </span>we can obtain a function of of ten variables that yields the
+result of rotating the point (<span class="cmmi-12">x,y,z</span>) about the line through (<span class="cmmi-12">a,b,c</span>) with direction vector <span class="cmsy-10x-x-120">⟨</span><span class="cmmi-12">u,v,w</span><span class="cmsy-10x-x-120">⟩</span>
+(where <span class="cmmi-12">u</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">v</span><sup><span class="cmr-8">2</span></sup> + <span class="cmmi-12">w</span><sup><span class="cmr-8">2</span></sup> = 1) by the angle <span class="cmmi-12">θ</span>.
+<!--l. 510--></p><p class="noindent"><span class="cmmi-12">f</span>(<span class="cmmi-12">x,y,z,a,b,c,u,v,w,θ</span>) =
+   </p><center class="math-display">
+<img src="Rotation%20About%20an%20Arbitrary%20Axis%20in%203%20Dimensions_files/ArbitraryAxisRotation17x.png" alt="⌊    2     2                                                                               ⌋
+ (a(v  + w  ) - u(bv + cw - ux - vy - wz ))(1 - cos θ) + xcos θ + (- cv + bw - wy + vz)sin θ
+||     2    2                                                                               ||
+| (b(u  + w  ) - v(au + cw - ux -  vy - wz ))(1 - cosθ ) + y cosθ + (cu - aw + wx - uz )sin θ |
+⌈                                                                                          ⌉
+  (c(u2 + v2) - w (au + bv - ux - vy - wz ))(1 - cos θ) + zcos θ + (- bu + av - vx + uy )sinθ
+" class="math-display"></center>
+<!--l. 533--><p class="noindent">
+   </p><h3 class="sectionHead"><span class="titlemark">7   </span> <a id="x1-130007"></a>Code and visualization</h3>
+<!--l. 535--><p class="noindent">A graphic visualization of rotating a point about a line can be found at
+<a href="http://twist-and-shout.appspot.com/" class="url"><span class="cmtt-12">http://twist-and-shout.appspot.com/</span></a>.
+<!--l. 537--></p><p class="indent">   Tested Java code for the matrices and formulas, released under the Apache license, is at
+<a href="https://sites.google.com/site/glennmurray/Home/rotation-matrices-and-formulas" class="url"><span class="cmtt-12">https://sites.google.com/site/glennmurray/Home/rotation-matrices-and-formulas</span></a>.
+    
+ 
+
+                                                                                         
+
+
+</p></body></html>
