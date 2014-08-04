@@ -346,16 +346,12 @@ class Gyroscope(object):
             self.rate[i] = rate[i]
 
         # rotation in degree during the last cycle
-        rotationAngles = self.rate / (1.0/CYCLE_LENGTH)
+        rotationAngle = np.linalg.norm(self.rate) / (1.0/CYCLE_LENGTH) 
 
-        # Rotation matrix
-        R = rotation_matrix(self.rate[0], self.rate[1], self.rate[2])
-
-        # update orientation information
-        self.x = np.inner(R, self.x)
-        self.y = np.inner(R, self.y)
-        self.z = np.inner(R, self.z)
-
+        # rotate local coordinate frame
+        self.x = rotate_arbitrary(self.rate, self.x, angle=rotationAngle)
+        self.y = rotate_arbitrary(self.rate, self.y, angle=rotationAngle)
+        self.z = rotate_arbitrary(self.rate, self.z, angle=rotationAngle)
 
     def get_rate(self):
         return self.rate
@@ -822,10 +818,15 @@ class NaoRobot(object):
         self.msched.append([self.move_hj_to, {'hj': 'rlj3', 'percent': 50}, done])
         self.msched.append([self.move_hj_to, {'hj': 'rlj4', 'percent': 50}, done])
         while not done[0]:
-            print("ACC:", np.linalg.norm(self.acc.get()))
+#            print("ACC:", np.linalg.norm(self.acc.get()))
 #            print("GYR:", self.gyr.get())
+            print(self.gyr.x)
+            print(self.gyr.y)
+            print(self.gyr.z)
+            print("")
             time.sleep(0.05)
 
+        time = time.time()
         time.sleep(1.0)
             
 #        done[0] = False
@@ -844,29 +845,39 @@ class NaoRobot(object):
 # UTILITY FUNCTIONS #
 #####################
 
-def rotation_matrix(a, b, c):
-    """Return a rotation matrix that first rotates a degrees around the x-axis,
-    then b degrees around the y-axis and finally c degrees around the z-axis."""
+def rotate_arbitrary(axis, point, angle=None, degree=True):
+    """Rotate the 3D point about the given axis.
+    If axis is not normalized and angle is None, the angle is taken as the norm
+    of axis. If degree == False, angles are expected in radiant."""
 
-    # convert to radiant
-    a = a * np.pi / 180
-    b = b * np.pi / 180
-    c = c * np.pi / 180
+    # ensure axis is unit length
+    axisNorm = np.linalg.norm(axis)
+    if axisNorm == 0: return point
+    axisn    = axis / axisNorm
+    if angle == None:
+        angle = axisNorm
+        
+    if degree:
+        # convert to radiant
+        angle *= np.pi / 180.0
 
-    Rx = np.array([
-            [1,           0,            0],
-            [0, math.cos(a), -math.sin(a)], 
-            [0, math.sin(a),  math.cos(a)]])
-    Ry = np.array([
-            [ math.cos(b), 0,  math.sin(b)],
-            [           0, 1,            0], 
-            [-math.sin(b), 0,  math.cos(b)]]) 
-    Rz = np.array([
-            [math.cos(c), -math.sin(c), 0],
-            [math.sin(c),  math.cos(c), 0], 
-            [          0,            0, 1]])  
+    u = axisn[0]
+    v = axisn[1]
+    w = axisn[2]
+    x = point[0]
+    y = point[1]
+    z = point[2]
 
-    return np.inner(np.inner(Rx, Ry), Rz)
+    sin = math.sin(angle)
+    cos = math.cos(angle)
+    dot = np.dot(axisn, point)
+    tmp = dot * (1 - cos)
+
+    result = np.array([u * tmp + x*cos + (-w*y + v*z) * sin, \
+                       v * tmp + y*cos + ( w*x - u*z) * sin, \
+                       w * tmp + z*cos + (-v*x + u*y) * sin])
+
+    return result
 
 # ============================================================================ #
 
